@@ -7,7 +7,7 @@ const { authenticate, authorize } = require('../middleware/auth');
 // A student views their OWN application — never anyone else's
 router.get('/me/application', authenticate, authorize('student'), async (req, res) => {
   try {
-    const profile = await StudentProfile.findOne({ user_id: req.user.userId });
+       const profile = await StudentProfile.findOne({ user_id: req.user.userId }).populate('school_id');
     if (!profile) {
       return res.status(404).json({ message: 'No student profile found for this account' });
     }

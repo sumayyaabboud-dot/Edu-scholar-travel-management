@@ -13,8 +13,8 @@ const DISCOUNTS = {
 // Travel Agency's queue — only students the donor has actually GRANTED
 router.get('/queue', authenticate, authorize('travel_agent'), async (req, res) => {
   try {
-    const grantedApplications = await Application.find({ status: 'Granted' })
-      .populate('student_id')
+       const grantedApplications = await Application.find({ status: 'Granted' })
+      .populate({ path: 'student_id', populate: { path: 'user_id' } })
       .populate('offer_id')
       .sort({ updatedAt: -1 });
 

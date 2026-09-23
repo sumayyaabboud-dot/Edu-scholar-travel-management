@@ -30,11 +30,11 @@ router.post('/login', async (req, res) => {
       maxAge: 7 * 24 * 60 * 60 * 1000
     });
 
-    res.json({
+        res.json({
       accessToken,
-      user: { id: user._id, name: user.name, email: user.email, role: user.role }
+      user: { id: user._id, name: user.name, email: user.email, role: user.role, assigned_country: user.assigned_country, school_id: user.school_id }
     });
-
+    
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Server error during login' });

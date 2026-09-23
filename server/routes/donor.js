@@ -14,12 +14,12 @@ router.get('/applications', authenticate, authorize('donor'), async (req, res) =
     const myOffers = await ScholarshipOffer.find({ country: req.user.assigned_country });
     const myOfferIds = myOffers.map(o => o._id);
 
-    const applications = await Application.find({
+        const applications = await Application.find({
       offer_id: { $in: myOfferIds },
       tier: { $ne: 'Rejected' },
       status: { $in: ['Pending', 'Under Review'] }
     })
-      .populate('student_id')
+      .populate({ path: 'student_id', populate: [{ path: 'user_id' }, { path: 'school_id' }] })
       .populate('offer_id')
       .sort({ createdAt: 1 })
       .limit(50);
@@ -93,6 +93,33 @@ router.get('/report/pdf', authenticate, authorize('donor'), async (req, res) => 
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Failed to generate report' });
+  }
+});
+
+router.get('/stats', authenticate, authorize('donor'), async (req, res) => {
+  try {
+    const myOffers = await ScholarshipOffer.find({ country: req.user.assigned_country });
+    const myOfferIds = myOffers.map((o) => o._id);
+    const totalSeats = myOffers.reduce((sum, o) => sum + o.total_seats, 0);
+    const seatsAllocated = myOffers.reduce((sum, o) => sum + o.seats_allocated, 0);
+    const universities = myOffers.map((o) => o.university);
+
+    const granted = await Application.countDocuments({ offer_id: { $in: myOfferIds }, status: 'Granted' });
+    const waitlisted = await Application.countDocuments({ offer_id: { $in: myOfferIds }, status: 'Waitlisted' });
+    const underReview = await Application.countDocuments({ offer_id: { $in: myOfferIds }, status: 'Under Review' });
+
+    const otherOffers = await ScholarshipOffer.find({ country: { $ne: req.user.assigned_country } });
+    const otherByCountry = {};
+    otherOffers.forEach((o) => {
+      if (!otherByCountry[o.country]) otherByCountry[o.country] = { total: 0, allocated: 0 };
+      otherByCountry[o.country].total += o.total_seats;
+      otherByCountry[o.country].allocated += o.seats_allocated;
+    });
+
+    res.json({ totalSeats, seatsAllocated, universities, granted, waitlisted, underReview, otherCountries: otherByCountry });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Failed to fetch stats' });
   }
 });
 

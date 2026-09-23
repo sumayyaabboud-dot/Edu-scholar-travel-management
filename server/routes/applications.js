@@ -9,6 +9,8 @@ const ScholarshipOffer = require('../models/ScholarshipOffer');
 const { calculateMatchScore } = require('../utils/matchScore');
 const { generateApplicationsPDF } = require('../utils/generatePDF');
 const { verifyDocument } = require('../utils/ocrVerification');
+const upload = require('../middleware/upload');
+const TravelBooking = require('../models/TravelBooking');
 function tierFromGPA(gpa) {
   if (gpa < 70) return 'Rejected';
   if (gpa <= 85) return 'Partial';
@@ -54,13 +56,36 @@ router.post('/', authenticate, authorize('school_admin'), async (req, res) => {
   }
 });
 
+router.post('/:id/certificate', authenticate, authorize('school_admin'), upload.single('certificate'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: 'No file uploaded' });
+    }
+
+    const application = await Application.findById(req.params.id);
+    if (!application) return res.status(404).json({ message: 'Application not found' });
+
+    if (String(application.school_id) !== String(req.user.school_id)) {
+      return res.status(403).json({ message: 'This application does not belong to your school' });
+    }
+
+    const profile = await StudentProfile.findById(application.student_id);
+    profile.certificate_url = `/uploads/${req.file.filename}`;
+    await profile.save();
+
+    res.json({ certificate_url: profile.certificate_url });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Failed to upload certificate' });
+  }
+});
+
 router.get('/', authenticate, authorize('school_admin'), async (req, res) => {
   try {
-    const applications = await Application.find({ school_id: req.user.school_id })
-      .populate('student_id')
+       const applications = await Application.find({ school_id: req.user.school_id })
+      .populate({ path: 'student_id', populate: { path: 'user_id' } })
       .populate('offer_id')
       .sort({ createdAt: -1 });
-
     res.json(applications);
   } catch (err) {
     console.error(err);
@@ -79,6 +104,54 @@ router.get('/report/pdf', authenticate, authorize('school_admin'), async (req, r
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Failed to generate report' });
+  }
+});
+
+router.get('/:id', authenticate, authorize('school_admin'), async (req, res) => {
+  try {
+    const application = await Application.findById(req.params.id)
+      .populate({ path: 'student_id', populate: { path: 'user_id' } })
+      .populate('offer_id');
+
+    if (!application) {
+      return res.status(404).json({ message: 'Application not found' });
+    }
+
+    if (String(application.school_id) !== String(req.user.school_id)) {
+      return res.status(403).json({ message: 'This application does not belong to your school' });
+    }
+
+    res.json(application);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Failed to fetch application' });
+  }
+});
+
+router.delete('/:id', authenticate, authorize('school_admin'), async (req, res) => {
+  try {
+    const application = await Application.findById(req.params.id);
+    if (!application) {
+      return res.status(404).json({ message: 'Application not found' });
+    }
+
+    if (String(application.school_id) !== String(req.user.school_id)) {
+      return res.status(403).json({ message: 'This application does not belong to your school' });
+    }
+
+    const profile = await StudentProfile.findById(application.student_id);
+
+    await TravelBooking.deleteOne({ app_id: application._id });
+    await Application.findByIdAndDelete(application._id);
+    if (profile) {
+      await User.findByIdAndDelete(profile.user_id);
+      await StudentProfile.findByIdAndDelete(profile._id);
+    }
+
+    res.json({ message: 'Application deleted' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Failed to delete application' });
   }
 });
 

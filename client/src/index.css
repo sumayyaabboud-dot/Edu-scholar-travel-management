@@ -1,0 +1,119 @@
+@import "tailwindcss";
+
+:root{
+  --cyan:#22D3EE; --cyan-deep:#0891B2;
+  --teal:#14B8A6; --teal-deep:#0D9488;
+  --green:#22C55E; --green-deep:#15803D;
+  --coral:#FF6B4A; --coral-deep:#E14F2E;
+  --gold:#E8B04B; --gold-deep:#B9860F;
+  --rose:#F4425A; --rose-deep:#D01F3C;
+  --primary:var(--cyan); --primary-deep:var(--cyan-deep);
+  --aurora: linear-gradient(120deg, var(--cyan), var(--teal) 50%, var(--green) 100%);
+  --radius:12px; --radius-sm:8px;
+}
+
+/* Landing & Login always present a bright theme, regardless of any later dark/light toggle on the workspace dashboards. */
+.theme-bright{
+  --bg:#FFFFFF; --card:#FFFFFF; --card-alt:#EFFBFD;
+  --ink:#0B1130; --ink-70:rgba(11,17,48,.66); --ink-45:rgba(11,17,48,.42);
+  --line:#E1EEF3; --line-strong:#CFE3EA;
+  --shadow: 0 1px 2px rgba(10,10,40,.05), 0 10px 26px -14px rgba(10,10,40,.12);
+  background:var(--bg); color:var(--ink);
+}
+
+*{box-sizing:border-box;}
+html,body{margin:0; padding:0;}
+body{font-family:'Inter',sans-serif; font-size:14.5px; line-height:1.55; -webkit-font-smoothing:antialiased;}
+h1,h2,h3,h4{font-family:'Sora',sans-serif; font-weight:600; margin:0; letter-spacing:-0.015em;}
+p{margin:0;} a{color:inherit; text-decoration:none;} button{font-family:inherit; cursor:pointer; border:none; background:none;}
+::selection{background:var(--cyan); color:#fff;}
+:focus-visible{outline:2px solid var(--cyan); outline-offset:2px;}
+
+.hue-violet{--hue:var(--cyan); --hue-deep:var(--cyan-deep);}
+.hue-blue{--hue:var(--teal); --hue-deep:var(--teal-deep);}
+.hue-cyan{--hue:var(--cyan); --hue-deep:var(--cyan-deep);}
+.hue-emerald{--hue:var(--green); --hue-deep:var(--green-deep);}
+.hue-coral{--hue:var(--coral); --hue-deep:var(--coral-deep);}
+.hue-gold{--hue:var(--gold); --hue-deep:var(--gold-deep);}
+.hue-rose{--hue:var(--rose); --hue-deep:var(--rose-deep);}
+
+.shell{max-width:1320px; margin:0 auto;}
+
+.btn{display:inline-flex; align-items:center; justify-content:center; gap:7px; border-radius:var(--radius-sm); border:1px solid transparent; padding:10px 18px; font-size:13.5px; font-weight:700; letter-spacing:0.01em; transition:opacity .12s ease, transform .1s ease; white-space:nowrap;}
+.btn:hover{opacity:.9;} .btn:active{transform:translateY(1px);}
+.btn.aurora{background:var(--aurora); color:#fff; border:none;}
+.btn.small{padding:7px 13px; font-size:12.5px;}
+.btn.large{padding:14px 26px; font-size:15px;}
+
+.card{background:var(--card); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow);}
+
+.brand-mark{width:34px; height:34px; border-radius:50%; background:#05070F; border:1.5px solid rgba(34,211,238,.55); box-shadow:0 0 14px -2px rgba(34,211,238,.55); display:flex; align-items:center; justify-content:center; position:relative; flex-shrink:0;}
+
+.flow-step{background:var(--card); border:1px solid var(--line); border-radius:var(--radius); padding:20px 16px; position:relative; overflow:hidden;}
+.flow-step::before{content:""; position:absolute; left:0; top:0; width:100%; height:3px; background:var(--hue);}
+.flow-step .fn{width:26px; height:26px; border-radius:50%; background:color-mix(in srgb, var(--hue) 16%, transparent); color:var(--hue); font-weight:700; font-size:12.5px; display:flex; align-items:center; justify-content:center; font-family:'Sora'; margin-bottom:12px;}
+.flow-step h4{font-size:14px;} .flow-step p{font-size:12px; color:var(--ink-70); margin-top:6px;}
+
+.feat-card{padding:24px;}
+.feat-card .fi{width:40px;height:40px;border-radius:10px; background:color-mix(in srgb, var(--hue) 15%, transparent); color:var(--hue); display:flex; align-items:center; justify-content:center; font-size:19px; margin-bottom:14px;}
+
+.role-card{background:var(--card); border:1px solid var(--line); border-left:3px solid var(--hue); border-radius:var(--radius-sm); padding:16px 14px; font-weight:700; font-size:13px; color:var(--ink); text-align:left; cursor:pointer; width:100%;}
+.role-card:hover{background:color-mix(in srgb, var(--ink) 6%, transparent);}
+
+@media (max-width:980px){
+  .grid-2{grid-template-columns:1fr !important;} .grid-3{grid-template-columns:1fr !important;}
+}
+
+/* ---- dark surface tokens — default theme for workspace dashboards ---- */
+:root{
+  --bg:#080C18; --rail-bg:#05070F; --card:#0F1526; --card-alt:#0A0F1E;
+  --ink:#EAF4FF; --ink-70:rgba(234,244,255,.68); --ink-45:rgba(234,244,255,.42);
+  --line:#1C2740; --line-strong:#2A3A5C;
+  --shadow: 0 1px 2px rgba(0,0,0,.4), 0 0 24px -10px rgba(34,211,238,.28);
+}
+body{background:var(--bg); color:var(--ink);}
+
+.btn.on-hue{background:var(--hue); color:#fff; border-color:transparent;}
+.btn.ghost{background:transparent; color:var(--ink-70); border-color:transparent;}
+
+.field{display:flex; flex-direction:column; gap:6px;}
+.field label{font-size:11.5px; font-weight:700; color:var(--ink-70); text-transform:uppercase; letter-spacing:.05em;}
+.field input, .field select{border:1.5px solid var(--line-strong); background:var(--card-alt); border-radius:var(--radius-sm); padding:10px 12px; font-size:14px; color:var(--ink); width:100%;}
+.field input:focus, .field select:focus{border-color:var(--cyan); outline:none;}
+
+.stat{background:var(--card); border:1px solid var(--line); border-radius:var(--radius); padding:18px 18px 16px; position:relative; overflow:hidden;}
+.stat::before{content:""; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--hue);}
+.stat .num{font-family:'Sora'; font-size:29px; font-weight:700; line-height:1;}
+.stat .lbl{font-size:11.5px; color:var(--ink-70); margin-top:6px; font-weight:500;}
+
+.mono{font-family:'JetBrains Mono',monospace;}
+
+table{border-collapse:collapse; width:100%;}
+th{text-align:left; font-size:10.5px; text-transform:uppercase; letter-spacing:.06em; font-weight:700; color:var(--ink-45); padding:0 14px 10px; border-bottom:1px solid var(--line-strong);}
+td{padding:14px; border-bottom:1px solid var(--line); font-size:13.5px; vertical-align:middle;}
+tbody tr:hover{background:color-mix(in srgb, var(--ink) 6%, transparent);}
+
+.tier{display:inline-flex; align-items:center; gap:6px; padding:5px 11px; border-radius:999px; font-size:11.5px; font-weight:700; white-space:nowrap;}
+.tier .dot{width:6px; height:6px; border-radius:50%;}
+.tier.ok{background:color-mix(in srgb, var(--green) 15%, transparent); color:#6FEFC4;} .tier.ok .dot{background:var(--green);}
+.tier.rejected{background:color-mix(in srgb, var(--rose) 14%, transparent); color:#FF95A5;} .tier.rejected .dot{background:var(--rose);}
+
+.tier.full{background:color-mix(in srgb, var(--gold) 18%, transparent); color:#FFD98A;} .tier.full .dot{background:var(--gold);}
+.tier.partial{background:color-mix(in srgb, var(--cyan) 16%, transparent); color:#7FE0F5;} .tier.partial .dot{background:var(--cyan);}
+
+.btn.primary{background:var(--cyan); color:#05070F;}
+.btn.secondary{background:transparent; color:var(--ink); border:1.5px solid var(--line-strong);}
+.btn.success{background:var(--green); color:#05070F;}
+
+.chip{padding:7px 13px; border-radius:999px; font-size:12px; font-weight:700; background:var(--card-alt); color:var(--ink-70); border:1px solid var(--line);}
+.chip.active{background:var(--cyan); color:#05070F; border-color:transparent;}
+
+.stg{display:flex; align-items:center; gap:8px; font-size:12.5px; font-weight:600; color:var(--ink-45); flex-shrink:0;}
+.stg .ic{width:22px; height:22px; border-radius:50%; border:1.5px solid var(--line-strong); display:flex; align-items:center; justify-content:center; font-size:11px;}
+.stg.done{color:var(--ink-70);} .stg.done .ic{background:var(--green); border-color:var(--green); color:#fff;}
+.stg.current{color:var(--cyan-deep);} .stg.current .ic{border-color:var(--cyan); color:var(--cyan);}
+.stg-line{flex:1; height:1.5px; background:var(--line-strong); margin:0 10px;} .stg-line.done{background:var(--green);}
+.bub{font-size:12.5px; line-height:1.5; padding:9px 12px; border-radius:11px; max-width:90%; background:var(--card-alt);}
+.bub.me{background:var(--cyan); color:#fff; align-self:flex-end; margin-left:auto; width:fit-content;}
+
+.tier.pending{background:color-mix(in srgb, var(--ink) 12%, transparent); color:var(--ink-70);} .tier.pending .dot{background:var(--ink-45);}
