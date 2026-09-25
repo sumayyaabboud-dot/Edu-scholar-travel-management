@@ -1,32 +1,45 @@
-# React + TypeScript + Vite
+# Edu-Scholar Travel Management System — Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+React + TypeScript + Tailwind CSS client for the Edu-Scholar platform.
 
-Currently, two official plugins are available:
+## Pages
+- **Landing** — public marketing page
+- **Login** — authenticates against the backend, redirects by role
+- **Create Account** (`/create-account?token=...`) — password setup for invited
+  students and donors
+- **Super Admin** — Scholarship Offers (create/edit/status) and Donor Management
+- **School Admin** — Student Roster (filters, CSV export, certificate upload,
+  application detail, cascading delete) and New Application
+- **Student Portal** — application status, AI Match Score, live chatbot
+  (rate-limited to 15 questions per 12-hour window)
+- **Donor Country** — batch review, Grant/Waitlist decisions, decision report PDF
+- **Travel Agency** — booking queue, process/confirm booking, manifest CSV export
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Tech Stack
+- React + TypeScript (Vite)
+- Tailwind CSS v4
+- React Router
+- Dark/light theme toggle, shared across all dashboards
 
-## React Compiler
+## Running the frontend
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+cd client
+npm install
+npm run dev
 
-## Expanding the Oxlint configuration
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
+Requires a `.env` file with:
 
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
-```
+VITE_API_URL=http://localhost:5000/api
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+
+## Status
+✅ All pages and dashboards built and tested end-to-end against the real backend API.
+
+4. Save.
+
+Push it
+
+5. Source Control → commit message:
+
+Update backend and frontend READMEs to reflect completed project state
