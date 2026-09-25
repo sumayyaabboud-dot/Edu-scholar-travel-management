@@ -128,7 +128,7 @@ export default function SchoolAdminDashboard() {
                     <td>{a.status}</td>
                                                             <td style={{ display: 'flex', gap: 6 }}>
                       <button className="btn ghost small" onClick={() => navigate(`/dashboard/school-admin/application/${a._id}`)}>Open</button>
-                      <button className="btn ghost small" style={{ color: '#FF95A5' }} onClick={() => handleDelete(a._id, a.student_id?.user_id?.name || 'this student')}>Delete</button>
+                      <button className="btn ghost small" style={{ color: '#FF95A5' }} onClick={() => handleDelete(a._id, a.student_id?.user_id?.name || 'this student')}>Cancel</button>
                     </td>
                   </tr>
                 ))}

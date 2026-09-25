@@ -5,6 +5,12 @@ import DashboardLayout from '../components/DashboardLayout';
 import { useAuth } from '../context/AuthContext';
 import { apiRequest } from '../api/client';
 
+interface Donor {
+  _id: string;
+  full_name: string;
+  country: string;
+}
+
 interface Offer {
   _id: string;
   country: string;
@@ -14,11 +20,13 @@ interface Offer {
   total_seats: number;
   seats_allocated: number;
   status: string;
+  donor_id?: Donor | null;
 }
 
 export default function SuperAdminDashboard() {
   const { user } = useAuth();
   const [offers, setOffers] = useState<Offer[]>([]);
+  const [donors, setDonors] = useState<Donor[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
 
@@ -29,22 +37,22 @@ export default function SuperAdminDashboard() {
   const [offerType, setOfferType] = useState('Full + Partial');
   const [totalSeats, setTotalSeats] = useState('');
   const [status, setStatus] = useState('Active');
+  const [donorId, setDonorId] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState('');
 
-  async function loadOffers() {
+  function loadOffers() {
     setLoading(true);
-    try {
-      const data = await apiRequest('/offers');
-      setOffers(data);
-    } catch (err: any) {
-      setLoadError(err.message || 'Failed to load offers');
-    } finally {
-      setLoading(false);
-    }
+    apiRequest('/offers')
+      .then(setOffers)
+      .catch((err) => setLoadError(err.message || 'Failed to load offers'))
+      .finally(() => setLoading(false));
   }
 
-  useEffect(() => { loadOffers(); }, []);
+  useEffect(() => {
+    loadOffers();
+    apiRequest('/donors').then(setDonors).catch(() => {});
+  }, []);
 
   function startEdit(offer: Offer) {
     setEditingId(offer._id);
@@ -54,6 +62,7 @@ export default function SuperAdminDashboard() {
     setOfferType(offer.offer_type);
     setTotalSeats(String(offer.total_seats));
     setStatus(offer.status);
+    setDonorId(offer.donor_id?._id || '');
     setFormError('');
   }
 
@@ -64,6 +73,7 @@ export default function SuperAdminDashboard() {
     setOfferType('Full + Partial');
     setTotalSeats('');
     setStatus('Active');
+    setDonorId('');
     setFormError('');
   }
 
@@ -83,6 +93,7 @@ export default function SuperAdminDashboard() {
             total_seats: Number(totalSeats),
             majors: majorsArray,
             status,
+            donor_id: donorId || null,
           }),
         });
       } else {
@@ -94,11 +105,12 @@ export default function SuperAdminDashboard() {
             offer_type: offerType,
             total_seats: Number(totalSeats),
             majors: majorsArray,
+            donor_id: donorId || null,
           }),
         });
       }
       cancelEdit();
-      await loadOffers();
+      loadOffers();
     } catch (err: any) {
       setFormError(err.message || 'Failed to save offer');
     } finally {
@@ -114,7 +126,16 @@ export default function SuperAdminDashboard() {
   const totalAllocated = offers.reduce((sum, o) => sum + (o.seats_allocated || 0), 0);
 
   return (
-        <DashboardLayout eyebrow="System configuration" title="Scholarship offers" roleLabel="Super Admin" roleHue="hue-violet" navItems={[{ label: 'Scholarship Offers', path: '/dashboard/super-admin' }]}>
+    <DashboardLayout
+      eyebrow="System configuration"
+      title="Scholarship offers"
+      roleLabel="Super Admin"
+      roleHue="hue-violet"
+      navItems={[
+        { label: 'Scholarship Offers', path: '/dashboard/super-admin' },
+        { label: 'Donors', path: '/dashboard/super-admin/donors' },
+      ]}
+    >
       <div className="shell" style={{ padding: '30px 36px' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16, marginBottom: 24 }}>
           <div className="stat hue-violet"><div className="num">{offers.length}</div><div className="lbl">Scholarship offers published</div></div>
@@ -138,6 +159,15 @@ export default function SuperAdminDashboard() {
                   <option>Germany</option>
                 </select>
                 {editingId && <p style={{ fontSize: 11, color: 'var(--ink-45)', marginTop: 4 }}>Country can't be changed after publishing.</p>}
+              </div>
+              <div className="field">
+                <label>Donor (optional)</label>
+                <select value={donorId} onChange={(e) => setDonorId(e.target.value)}>
+                  <option value="">— No specific donor linked —</option>
+                  {donors.map((d) => (
+                    <option key={d._id} value={d._id}>{d.full_name} — {d.country}</option>
+                  ))}
+                </select>
               </div>
               <div className="field">
                 <label>University</label>
@@ -192,12 +222,13 @@ export default function SuperAdminDashboard() {
               <div style={{ padding: 20, fontSize: 13, color: 'var(--ink-70)' }}>No offers published yet.</div>
             ) : (
               <table>
-                <thead><tr><th>Country</th><th>University</th><th>Majors</th><th>Seats</th><th>Allocated</th><th>Status</th><th></th></tr></thead>
+                <thead><tr><th>Country</th><th>University</th><th>Donor</th><th>Majors</th><th>Seats</th><th>Allocated</th><th>Status</th><th></th></tr></thead>
                 <tbody>
                   {offers.map((o) => (
                     <tr key={o._id}>
                       <td><strong>{o.country}</strong></td>
                       <td>{o.university}</td>
+                      <td>{o.donor_id?.full_name || '—'}</td>
                       <td>{o.majors.join(', ')}</td>
                       <td className="mono">{o.total_seats}</td>
                       <td className="mono">{o.seats_allocated}</td>

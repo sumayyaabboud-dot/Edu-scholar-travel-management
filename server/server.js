@@ -12,6 +12,8 @@ const applicationRoutes = require('./routes/applications');
 const chatbotRoutes = require('./routes/chatbot');
 const schoolRoutes = require('./routes/schools');
 const path = require('path');
+const donorEntityRoutes = require('./routes/donors');
+const onboardingRoutes = require('./routes/onboarding');
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -25,6 +27,8 @@ app.use('/api/travel', travelRoutes);
 app.use('/api/applications', applicationRoutes);
 app.use('/api/chatbot', chatbotRoutes);
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/api/donors', donorEntityRoutes);
+app.use('/api/onboarding', onboardingRoutes);
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok' });
 });

@@ -9,6 +9,8 @@ import ApplicationDetailPage from './pages/ApplicationDetailPage';
 import StudentDashboard from './pages/StudentDashboard';
 import DonorDashboard from './pages/DonorDashboard';
 import TravelAgencyDashboard from './pages/TravelAgencyDashboard';
+import DonorManagementPage from './pages/DonorManagementPage';
+import CreateAccountPage from './pages/CreateAccountPage';
 function App() {
   return (
     <Routes>
@@ -22,6 +24,8 @@ function App() {
       <Route path="/dashboard/student" element={<StudentDashboard />} />
       <Route path="/dashboard/donor" element={<DonorDashboard />} />
      <Route path="/dashboard/travel-agency" element={<TravelAgencyDashboard />} />
+     <Route path="/dashboard/super-admin/donors" element={<DonorManagementPage />} />
+     <Route path="/create-account" element={<CreateAccountPage />} />
     </Routes>
   );
 }

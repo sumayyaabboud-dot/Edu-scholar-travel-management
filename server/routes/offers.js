@@ -5,7 +5,7 @@ const { authenticate, authorize } = require('../middleware/auth');
 
 router.get('/', authenticate, async (req, res) => {
   try {
-    const offers = await ScholarshipOffer.find().sort({ createdAt: -1 });
+    const offers = await ScholarshipOffer.find().populate('donor_id').sort({ createdAt: -1 });
     res.json(offers);
   } catch (err) {
     console.error(err);
@@ -15,7 +15,7 @@ router.get('/', authenticate, async (req, res) => {
 
 router.post('/', authenticate, authorize('super_admin'), async (req, res) => {
   try {
-    const { country, university, offer_type, total_seats, majors } = req.body;
+    const { country, university, offer_type, total_seats, majors, donor_id } = req.body;
 
     const offer = await ScholarshipOffer.create({
       user_id: req.user.userId,
@@ -23,7 +23,8 @@ router.post('/', authenticate, authorize('super_admin'), async (req, res) => {
       university,
       offer_type,
       total_seats,
-      majors
+      majors,
+      donor_id: donor_id || null
     });
 
     res.status(201).json(offer);
@@ -33,12 +34,9 @@ router.post('/', authenticate, authorize('super_admin'), async (req, res) => {
   }
 });
 
-// Super Admin edits an existing offer. Country is intentionally not editable here —
-// it's the field donors key off of, so changing it after publishing would be a bigger,
-// separate decision than a simple edit.
 router.patch('/:id', authenticate, authorize('super_admin'), async (req, res) => {
   try {
-    const { university, offer_type, total_seats, majors, status } = req.body;
+    const { university, offer_type, total_seats, majors, status, donor_id } = req.body;
 
     const offer = await ScholarshipOffer.findById(req.params.id);
     if (!offer) {
@@ -50,6 +48,7 @@ router.patch('/:id', authenticate, authorize('super_admin'), async (req, res) =>
     if (total_seats !== undefined) offer.total_seats = total_seats;
     if (majors !== undefined) offer.majors = majors;
     if (status !== undefined) offer.status = status;
+    if (donor_id !== undefined) offer.donor_id = donor_id || null;
 
     await offer.save();
     res.json(offer);

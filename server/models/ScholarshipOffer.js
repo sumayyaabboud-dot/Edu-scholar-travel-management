@@ -8,7 +8,8 @@ const scholarshipOfferSchema = new mongoose.Schema({
   total_seats: { type: Number, required: true },
   seats_allocated: { type: Number, default: 0 },
   majors: [{ type: String }],
-  status: { type: String, enum: ['Active', 'Closed'], default: 'Active' }
+  status: { type: String, enum: ['Active', 'Closed'], default: 'Active' },
+  donor_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Donor', default: null }
 }, { timestamps: true });
 
 module.exports = mongoose.model('ScholarshipOffer', scholarshipOfferSchema);

@@ -5,6 +5,8 @@ import DashboardLayout from '../components/DashboardLayout';
 import { useAuth } from '../context/AuthContext';
 import { apiRequest } from '../api/client';
 
+const QUESTION_LIMIT = 15;
+
 interface Application {
   _id: string;
   tier: string;
@@ -43,7 +45,9 @@ export default function StudentDashboard() {
   ]);
   const [question, setQuestion] = useState('');
   const [asking, setAsking] = useState(false);
-
+   const [questionsUsed, setQuestionsUsed] = useState(0);
+  const [resetsAt, setResetsAt] = useState<string | null>(null);
+  const limitReached = questionsUsed >= QUESTION_LIMIT;
   useEffect(() => {
     apiRequest('/students/me/application')
       .then((data) => {
@@ -52,20 +56,34 @@ export default function StudentDashboard() {
       })
       .catch((err) => setError(err.message || 'Failed to load'))
       .finally(() => setLoading(false));
+
+        apiRequest('/chatbot/usage')
+      .then((data) => {
+        setQuestionsUsed(data.questionCount || 0);
+        setResetsAt(data.resetsAt || null);
+      })
+      .catch(() => {});
   }, []);
 
   async function handleAsk(e: FormEvent) {
     e.preventDefault();
-    if (!question.trim()) return;
+    if (!question.trim() || limitReached) return;
     const q = question;
     setMessages((prev) => [...prev, { from: 'me', text: q }]);
     setQuestion('');
     setAsking(true);
     try {
-      const data = await apiRequest('/chatbot/ask', { method: 'POST', body: JSON.stringify({ question: q }) });
+            const data = await apiRequest('/chatbot/ask', { method: 'POST', body: JSON.stringify({ question: q }) });
       setMessages((prev) => [...prev, { from: 'bot', text: data.answer }]);
-    } catch {
-      setMessages((prev) => [...prev, { from: 'bot', text: 'Sorry, something went wrong.' }]);
+      if (typeof data.questionCount === 'number') setQuestionsUsed(data.questionCount);
+      if (data.resetsAt) setResetsAt(data.resetsAt);
+    } catch (err: any) {
+      if (err.message && err.message.includes('limit')) {
+        setMessages((prev) => [...prev, { from: 'bot', text: err.message }]);
+        setQuestionsUsed(QUESTION_LIMIT);
+      } else {
+        setMessages((prev) => [...prev, { from: 'bot', text: 'Sorry, something went wrong.' }]);
+      }
     } finally {
       setAsking(false);
     }
@@ -75,7 +93,7 @@ export default function StudentDashboard() {
   if (user.role !== 'student') return <Navigate to="/dashboard" replace />;
 
   return (
-        <DashboardLayout eyebrow={profile?.school_id?.school_name || 'Your application'} title={user.name} roleLabel="Student Portal" roleHue="hue-cyan" navItems={[{ label: 'My Application', path: '/dashboard/student' }]}>
+    <DashboardLayout eyebrow={profile?.school_id?.school_name || 'Your application'} title={user.name} roleLabel="Student Portal" roleHue="hue-cyan" navItems={[{ label: 'My Application', path: '/dashboard/student' }]}>
       <div className="shell" style={{ padding: '30px 36px', display: 'grid', gridTemplateColumns: '1fr 320px', gap: 24 }}>
         <div>
           {loading ? (
@@ -168,25 +186,35 @@ export default function StudentDashboard() {
           )}
 
           <div className="card" style={{ display: 'flex', flexDirection: 'column', height: 400, overflow: 'hidden', padding: 0 }}>
-            <div style={{ padding: '15px 17px', borderBottom: '1px solid var(--line)', display: 'flex', alignItems: 'center', gap: 9 }}>
-              <div style={{ width: 22, height: 22, borderRadius: 7, background: 'var(--cyan)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: '#fff' }}>AI</div>
-              <div><div style={{ fontSize: 13, fontWeight: 700 }}>Scholarship Chatbot</div><div style={{ fontSize: 10.5, color: 'var(--ink-45)' }}>Answers drawn only from the rulebook</div></div>
+            <div style={{ padding: '15px 17px', borderBottom: '1px solid var(--line)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+                <div style={{ width: 22, height: 22, borderRadius: 7, background: 'var(--cyan)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: '#fff' }}>AI</div>
+                <div><div style={{ fontSize: 13, fontWeight: 700 }}>Scholarship Chatbot</div><div style={{ fontSize: 10.5, color: 'var(--ink-45)' }}>Answers drawn only from the rulebook</div></div>
+              </div>
+              <span style={{ fontSize: 10.5, fontWeight: 700, color: limitReached ? '#D01F3C' : 'var(--ink-45)' }}>{questionsUsed}/{QUESTION_LIMIT}</span>
             </div>
             <div style={{ flex: 1, overflowY: 'auto', padding: '15px 17px', display: 'flex', flexDirection: 'column', gap: 12 }}>
               {messages.map((m, i) => (
                 <div key={i} className={m.from === 'bot' ? 'bub me' : 'bub'}>{m.text}</div>
               ))}
               {asking && <div className="bub me" style={{ opacity: 0.6 }}>Thinking...</div>}
+                            {limitReached && (
+                <div className="bub" style={{ background: 'color-mix(in srgb, var(--rose) 12%, var(--card-alt))', color: 'var(--rose)' }}>
+                  You've reached your limit of {QUESTION_LIMIT} questions.{resetsAt ? ` You can ask again after ${new Date(resetsAt).toLocaleString()}.` : ''}
+                </div>
+              )}
+              
             </div>
             <form onSubmit={handleAsk} style={{ padding: 12, borderTop: '1px solid var(--line)', display: 'flex', gap: 8 }}>
               <input
                 type="text"
                 value={question}
                 onChange={(e) => setQuestion(e.target.value)}
-                placeholder="Ask a question…"
-                style={{ flex: 1, border: '1.5px solid var(--line-strong)', borderRadius: 'var(--radius-sm)', padding: '9px 12px', fontSize: 13, background: 'var(--card-alt)', color: 'var(--ink)' }}
+                placeholder={limitReached ? 'Question limit reached' : 'Ask a question…'}
+                disabled={limitReached}
+                style={{ flex: 1, border: '1.5px solid var(--line-strong)', borderRadius: 'var(--radius-sm)', padding: '9px 12px', fontSize: 13, background: 'var(--card-alt)', color: 'var(--ink)', opacity: limitReached ? 0.5 : 1 }}
               />
-              <button type="submit" disabled={asking} className="btn small" style={{ background: 'var(--cyan)', color: '#fff' }}>Ask</button>
+              <button type="submit" disabled={asking || limitReached} className="btn small" style={{ background: 'var(--cyan)', color: '#fff', opacity: limitReached ? 0.5 : 1 }}>Ask</button>
             </form>
           </div>
         </div>

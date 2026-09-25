@@ -26,4 +26,13 @@ async function sendStatusEmail(toEmail, studentName, decision, universityName) {
   });
 }
 
-module.exports = { sendStatusEmail };
+async function sendInviteEmail(toEmail, name, setupLink) {
+  await transporter.sendMail({
+    from: '"Edu-Scholar" <no-reply@eduscholar.com>',
+    to: toEmail,
+    subject: 'You\'ve been invited to Edu-Scholar',
+    text: `Dear ${name},\n\nA Super Admin has added you as a donor on Edu-Scholar. Set up your password to activate your account:\n\n${setupLink}\n\nThis link expires in 48 hours.\n\n— Edu-Scholar Team`
+  });
+}
+
+module.exports = { sendStatusEmail, sendInviteEmail };
