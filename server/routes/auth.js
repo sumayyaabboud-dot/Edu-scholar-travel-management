@@ -20,7 +20,7 @@ router.post('/login', async (req, res) => {
 
     const payload = { userId: user._id, role: user.role, name: user.name, school_id: user.school_id, assigned_country: user.assigned_country };
 
-    const accessToken = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '24h' });
+    const accessToken = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '15min' });
     const refreshToken = jwt.sign(payload, process.env.JWT_REFRESH_SECRET, { expiresIn: '7d' });
 
     res.cookie('refreshToken', refreshToken, {
@@ -48,7 +48,7 @@ router.post('/refresh', (req, res) => {
   try {
     const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET);
     const payload = { userId: decoded.userId, role: decoded.role, name: decoded.name, school_id: decoded.school_id, assigned_country: decoded.assigned_country };
-    const newAccessToken = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '24h' });
+    const newAccessToken = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '15min' });
     res.json({ accessToken: newAccessToken });
   } catch (err) {
     return res.status(401).json({ message: 'Invalid refresh token' });

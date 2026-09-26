@@ -15,7 +15,13 @@ const path = require('path');
 const donorEntityRoutes = require('./routes/donors');
 const onboardingRoutes = require('./routes/onboarding');
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: [
+    'http://localhost:5173',
+    process.env.FRONTEND_URL
+  ],
+  credentials: true
+}));
 app.use(express.json());
 app.use(cookieParser());
 app.use('/api/auth', authRoutes);
@@ -37,5 +43,5 @@ mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('MongoDB connected'))
   .catch((err) => console.error('MongoDB connection error:', err));
 
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
